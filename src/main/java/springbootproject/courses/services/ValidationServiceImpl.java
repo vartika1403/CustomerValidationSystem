@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import springbootproject.courses.dao.CustomerDao;
 import springbootproject.courses.entities.Customer;
 import springbootproject.courses.entities.ValidationStatus;
+import springbootproject.courses.utils.CustomerValidation;
 
 
 @Service
@@ -92,13 +93,14 @@ public class ValidationServiceImpl implements ValidationService {
 		logger.info("Thread name 3:- " + Thread.currentThread().getName() + " email: " + customer.getEmail());
 
 		 try {
-				Thread.sleep(100);
+				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
-		if (customer.getEmail().isEmpty() || customer.getEmail() == null) {
+		if (!CustomerValidation.isValidEmail(customer.getEmail()) 
+				|| CustomerValidation.isValidPanCardNo(customer.getPanNo())) {
 
 			return CompletableFuture.completedFuture(ValidationStatus.REJECTED);
 		}

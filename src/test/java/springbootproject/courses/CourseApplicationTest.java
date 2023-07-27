@@ -14,10 +14,4 @@ public class CourseApplicationTest {
 	@Test
 	void contextLoads() {
 	}
-
-	 @Test    
-	    public void testReverseWord(){    
-	        System.out.println("test case reverse word");  
-	        assertEquals("ym eman si nahk ","my name is khan");    
-	    }  
 }

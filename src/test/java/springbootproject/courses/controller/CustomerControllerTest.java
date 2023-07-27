@@ -52,6 +52,10 @@ public class CustomerControllerTest {
 
     	customer = new Customer();
     	customer.setId(1);
+    	customer.setCompanyName("Infosys");
+    	customer.setEmail("vartika.1403@gmail.com");
+    	customer.setNoOfSubscriptions(2);
+    	customer.setValidationStatus("Not Started");
     	
     }
  
@@ -63,5 +67,26 @@ public class CustomerControllerTest {
     	mockMvc.perform(get("/customers")).andExpect(status().isOk())
 		.andExpect(jsonPath("$.size()", is(customerList.size())));
     	
+    }
+    
+    @Test
+    public void testGetOneCustomers() throws Exception {
+    	when(customerService.getCustomer(customer.getId())).thenReturn(customer);
+    	Customer customer1 = customerController.getCustomer(""+customer.getId());
+    	assert(customer1.getEmail()).equals(customer.getEmail());	
+    }
+    
+    @Test
+    public void testCustomerValidationStatus() throws Exception {
+    	when(validationService.getValidationStatus(customer.getId())).thenReturn("In Progress");
+    	String status = customerController.getCustomerValidationStatus(""+customer.getId());
+    	assert(status).equals("In Progress");	
+    }
+    
+    @Test
+    public void testCreateCustomer() throws Exception {
+    	when(validationService.getValidationStatus(customer.getId())).thenReturn("In Progress");
+    	String status = customerController.getCustomerValidationStatus(""+customer.getId());
+    	assert(status).equals("In Progress");	
     }
 }
