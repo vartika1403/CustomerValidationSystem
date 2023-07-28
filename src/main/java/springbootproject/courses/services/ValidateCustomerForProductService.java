@@ -5,10 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import springbootproject.courses.entities.Customer;
 import springbootproject.courses.entities.ValidationStatus;
 
-public interface ValidationService {
-	
-	public String getValidationStatus(Long customerId);
-	
-	public void validateCustomer(Customer customer);
+public interface ValidateCustomerForProductService {
+	CompletableFuture<ValidationStatus> validateCustomerForProduct(int productNo, Customer customer);
 
 }

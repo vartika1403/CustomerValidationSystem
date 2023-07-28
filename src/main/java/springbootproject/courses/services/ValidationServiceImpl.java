@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import springbootproject.courses.controller.LoggingController;
 import springbootproject.courses.dao.CustomerDao;
 import springbootproject.courses.entities.Customer;
 import springbootproject.courses.entities.ValidationStatus;
@@ -24,9 +25,13 @@ public class ValidationServiceImpl implements ValidationService {
 
 	@Autowired
 	CustomerDao customerDao;
-    Logger logger = LoggerFactory.getLogger(ValidationServiceImpl.class);
     private Customer customer;
 
+    @Autowired
+    private LoggingController logger;
+    
+    @Autowired
+    private ValidateCustomerForProductService validateCustomerForProductService;
 	
 	@Override
 	public String getValidationStatus(Long customerId) {
@@ -39,76 +44,39 @@ public class ValidationServiceImpl implements ValidationService {
 	@Override
 	@Async
 	public void validateCustomer(Customer customer) {
+		Long start = System.currentTimeMillis();
+
 		logger.info("Thread name 2:- " + Thread.currentThread().getName());
 
 		this.customer = customer;
 		customer.setValidationStatus(ValidationStatus.IN_PROGRESS.getValue());
-       int n = customer.getNoOfSubscriptions();
-       int i = 0;
-       List<CompletableFuture<ValidationStatus>> validationStatusFuturesList = new ArrayList<>();
-       while (i < n) {
-    	   validationStatusFuturesList.add(validateCustomerForProduct(i, customer));
+        int n = customer.getNoOfSubscriptions();
+        int i = 0;
+        List<CompletableFuture<ValidationStatus>> validationStatusFuturesList = new ArrayList<>();
+        while (i < n) {
+    	   validationStatusFuturesList.add(validateCustomerForProductService.validateCustomerForProduct(i, customer));
     	   i++;
-       }
-       CompletableFuture.allOf(validationStatusFuturesList.toArray(new CompletableFuture[]{})).join();
+        }
+        CompletableFuture.allOf(validationStatusFuturesList.toArray(new CompletableFuture[]{})).join();
        
         for(CompletableFuture<ValidationStatus> validationStatus : validationStatusFuturesList) {
-        	try {
-    			logger.info("Thread name 4:- " + validationStatus.get().getValue());
-    		} catch (InterruptedException e1) {
-    			// TODO Auto-generated catch block
-    			e1.printStackTrace();
-    		} catch (ExecutionException e1) {
-    			// TODO Auto-generated catch block
-    			e1.printStackTrace();
-    		}
-
+   
         	 try {
-					if(validationStatus.get() == ValidationStatus.REJECTED) {
-						logger.info("Thread name 5:- ");
-						customer.setValidationStatus(ValidationStatus.REJECTED.getValue());
-						return;
-					}
+				if(validationStatus.get() == ValidationStatus.REJECTED) {
+					customer.setValidationStatus(ValidationStatus.REJECTED.getValue());
+					return;
+				 }
 				} catch (InterruptedException | ExecutionException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
            }
     
 					
-       try {
-		Thread.sleep(10000);
-	} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-		logger.info("Thread name 6:- " );
+		Long end = System.currentTimeMillis();
+
+		logger.info("Thread name 6:- " +(end-start));
 
        customer.setValidationStatus(ValidationStatus.ACCEPTED.getValue());
        customerDao.save(customer);
-	}
-	
-	@Async
-	public CompletableFuture<ValidationStatus> validateCustomerForProduct(int productNo,Customer customer) {
-		logger.info("Thread name 3:- " + Thread.currentThread().getName() + " email: " + customer.getEmail());
-
-		 try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-		if (!CustomerValidation.isValidEmail(customer.getEmail()) 
-				|| CustomerValidation.isValidPanCardNo(customer.getPanNo())) {
-
-			return CompletableFuture.completedFuture(ValidationStatus.REJECTED);
-		}
-		
-		return CompletableFuture.completedFuture(ValidationStatus.ACCEPTED);
-		
-	}
-	
-	
-
+	}	
 }
