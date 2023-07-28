@@ -1,8 +1,10 @@
 package springbootproject.courses.controller;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -18,6 +20,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -34,6 +38,10 @@ public class CustomerControllerTest {
 	
 	@Mock
     CustomerService customerService;
+	
+	@Mock
+    public LoggingController logger;
+
 	
 	@Mock
 	private ValidationService validationService;
@@ -85,8 +93,17 @@ public class CustomerControllerTest {
     
     @Test
     public void testCreateCustomer() throws Exception {
-    	when(validationService.getValidationStatus(customer.getId())).thenReturn("In Progress");
-    	String status = customerController.getCustomerValidationStatus(""+customer.getId());
-    	assert(status).equals("In Progress");	
+    	Customer customer2 = new Customer();
+    	customer2.setId(3);
+    	customer2.setEmail("vartika.1403@gmail.com");
+    	customer2.setPanNo("XYZABX");
+    	customer2.setNoOfSubscriptions(2);
+
+    	ResponseEntity<HttpStatus> status = customerController.addCustomer(customer2);
+    	assertEquals(200, status.getStatusCodeValue());
+    	assert(customerController.getCustomerValidationStatus(""+customer2.getId())).equals("In Progress");
+            
     }
+    
+   
 }

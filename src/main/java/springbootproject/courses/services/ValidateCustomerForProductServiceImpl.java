@@ -29,8 +29,7 @@ public class ValidateCustomerForProductServiceImpl implements ValidateCustomerFo
 				e.printStackTrace();
 			}
 
-		if (!CustomerValidation.isValidEmail(customer.getEmail()) 
-				|| CustomerValidation.isValidPanCardNo(customer.getPanNo())) {
+		if (!CustomerValidation.isValidEmail(customer.getEmail())) {
 
 			return CompletableFuture.completedFuture(ValidationStatus.REJECTED);
 		}
